@@ -25,21 +25,14 @@ for wiersz in img:#glowna pentla
     for piksel in wiersz:#przechodzi po wszystkich pikselach
         numer_piksela += 1#modyfikacja numeru piksela
         if( czy_bialy(piksel) == 0):#sprawdza czy rozwazany piksel jest bialy, jezeli jest to konczymy
-            piksel_gora = (1, 1, 1)
-            piksel_lewo = (1, 1, 1)
-            piksel_gora_prawo = (1, 1, 1)#ustawienie pikseli na biale w celu unikniecia bledow
             if (numer_wiersza > 0):#sprawdzenie wiesza wyzej
                 piksel_gora = img[numer_wiersza - 1][numer_piksela]#przypisanie koloru piksela wyzej
             if(numer_piksela > 0):
                 piksel_lewo = img[numer_wiersza][numer_piksela - 1]#to samo co wyzej tylko po lewej stronie
-            if (numer_wiersza > 0 and len(wiersz)):
-                piksel_gora_prawo = img[numer_wiersza - 1][numer_piksela + 1]#sprawdzenie piksela w wierszu wyzej i o jednej pozycji w prawo
             if(czy_bialy(piksel_lewo) == 0 ):#jezeli piksel po lewo nie jest bialy to przypisz ten sam kolor do obecnego rpzypadku
                 img[numer_wiersza][numer_piksela] = piksel_lewo
             elif(czy_bialy(piksel_gora)==0):
                 img[numer_wiersza][numer_piksela] = piksel_gora#w przeciwnym przypadku gdzie piksel u gory nie jest bialyprzypisz jego kolor do obecnego
-            elif (czy_bialy(piksel_gora_prawo) == 0):
-                img[numer_wiersza][numer_piksela] = piksel_gora_prawo
             else:#jezeli piksel u gory i po prawo sa biale
                 for numer_piksela_prawo in range(len(wiersz)-numer_piksela):#badamy piksele w prawo kore sa w naszeym obekcie
                     if(czy_bialy(img[numer_wiersza][numer_piksela_prawo+numer_piksela]) == 0):#jezeli piksel po prawo nie jest bialy
