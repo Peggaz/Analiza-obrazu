@@ -1,53 +1,61 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import imread
-import matplotlib.image as mpimg
 
+package analiza.obrazu;
 
-img = imread("obraz.png")#wczytanie obrazu
-plt.imshow(img)#przygotowanie widoku podglądowego(usun "#" z poczatku lini by zadzialalo)
-plt.show()#wygląd poglądowy
-numer_wiersza = -1 #zmienne potrzebne do wykonania
-numer_piksela = -1
-etykieta = 0
-piksel_gora = (1., 1., 1.)
-piksel_lewo = (1, 1, 1)
-piksel_gora_prawo = (1, 1, 1)
-def czy_bialy(a): #sprawdza czy obiekt jest bialy, lub taki przypomina, w przypadku bieli zwraca 1
-    for i in a:
-        if i < 0.85:
-            return 0
-    return 1
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 
-for wiersz in img:#glowna pentla
-    numer_piksela = -1#zeruje numer piksela
-    numer_wiersza += 1#modyfikacja numeru wiersza
-    for piksel in wiersz:#przechodzi po wszystkich pikselach
-        numer_piksela += 1#modyfikacja numeru piksela
-        if( czy_bialy(piksel) == 0):#sprawdza czy rozwazany piksel jest bialy, jezeli jest to konczymy
-            if (numer_wiersza > 0):#sprawdzenie wiesza wyzej
-                piksel_gora = img[numer_wiersza - 1][numer_piksela]#przypisanie koloru piksela wyzej
-            if(numer_piksela > 0):
-                piksel_lewo = img[numer_wiersza][numer_piksela - 1]#to samo co wyzej tylko po lewej stronie
-            if(czy_bialy(piksel_lewo) == 0 ):#jezeli piksel po lewo nie jest bialy to przypisz ten sam kolor do obecnego rpzypadku
-                img[numer_wiersza][numer_piksela] = piksel_lewo
-            elif(czy_bialy(piksel_gora)==0):
-                img[numer_wiersza][numer_piksela] = piksel_gora#w przeciwnym przypadku gdzie piksel u gory nie jest bialyprzypisz jego kolor do obecnego
-            else:#jezeli piksel u gory i po prawo sa biale
-                for numer_piksela_prawo in range(len(wiersz)-numer_piksela):#badamy piksele w prawo kore sa w naszeym obekcie
-                    if(czy_bialy(img[numer_wiersza][numer_piksela_prawo+numer_piksela]) == 0):#jezeli piksel po prawo nie jest bialy
-                        piksel_gora_prawo = img[numer_wiersza - 1][numer_piksela_prawo+numer_piksela]
-                        if(czy_bialy(piksel_gora_prawo) == 0):#sprawdzamy piksele nad naszym wierszem obiektu
-                            break#jezeli jest to zatrzymaj pentle
-                    else:
-                        break#jezeli pikel po prawo jest bialy zatrzymaj
-                if (czy_bialy(piksel_gora_prawo) == 0):
-                    img[numer_wiersza][numer_piksela] = piksel_gora_prawo#jezeli piksele w wierszu powyzej nalezace do obiektu sa rozne od bialego to przypisz kolor do obecnego
-                else:#jezeli jest to nowa figura
-                    etykieta += 1 #ustaw nowa etykiete
-                    szarosc = etykieta / 20#ustaw nowy kolor oparty o numer etykiety
-                    img[numer_wiersza][numer_piksela] = (szarosc, szarosc, szarosc)#przypisz nowy kolor do pierwszego piksela nowej znalezonej figury
+public class AnalizaObrazu {
 
-plt.imshow(img)#przygotowanie widoku podglądowego(usun "#" z poczatku lini by zadzialalo)
-plt.show()#wygląd poglądowy
-mpimg.imsave("wyjscie.png", img)#zapis do pliku
+    public static void main(String[] args) throws IOException {
+        BufferedImage img = null;//tworzenie boiektu przechowującego zdjęcie
+        
+        img = ImageIO.read(new File("obraz.png"));//odczytanie obrazu
+        
+        int wysokosc = img.getHeight();//przypisanie wysokosci i szerokosci
+        int szerokosc = img.getWidth();
+        
+        int piksel_gora = 0;
+        int piksel_lewo = 0;
+        int piksel_prawo_gora = 0;
+        int etykieta = 0;//zmienne pomocnicze
+        int kolor_kluczowy = -1673255;//kolor RGB zapisany w liczbie całkowitej int
+        for (int wiersz = 0; wiersz < wysokosc; wiersz++){//rozpoczecie iteracji po wierszach
+            for(int piksel = 0; piksel < szerokosc; piksel++){//iteracja po pikselach
+                if(img.getRGB(wiersz, piksel)<kolor_kluczowy){//jezeli badany piksel nie jest bialy to:
+                    if(wiersz > 0)//jezeli nie jestesmy w pierwszym wierszu to sprawdzamy wiersz wyzej
+                        piksel_gora = img.getRGB(wiersz-1, piksel);
+                    if(piksel > 0)//jezeli nie jestesmy w pierwszej kolumnie to sprawdzamy piksel po lewo
+                        piksel_lewo = img.getRGB(wiersz, piksel-1);
+                    if(piksel_gora < kolor_kluczowy)//jezeli piksel wyzej jest juz ustawiony to ustaw obecny
+                        img.setRGB(wiersz, piksel, piksel_gora);
+                    else if(piksel_lewo < kolor_kluczowy)//jez3eli piksel po lewo jest ustawiony to ustaw obecny
+                        img.setRGB(wiersz, piksel, piksel_lewo);
+                    else{//jezeli piksel po lewo i u gory nie jest ustawiony to:
+                        for(int numer_piksela_prawo = piksel; numer_piksela_prawo < szerokosc; numer_piksela_prawo++){//badamy piksele na prawo od obecnego
+                            if(img.getRGB(wiersz, numer_piksela_prawo) < kolor_kluczowy){//jezeli nalezy do naszej figury
+                                piksel_prawo_gora = img.getRGB(wiersz-1, numer_piksela_prawo);//badamy piksel nad nim
+                                if(piksel_prawo_gora < kolor_kluczowy)//jezeli piksel nad nim jest ustationy
+                                    break;//zatrzymaj
+                            }
+                            else//jezeli piksel po prawo nie jest ustawiony oznacza to koniec figury
+                                break;//zatrzymaj
+                        }
+                        if(piksel_prawo_gora < kolor_kluczowy)//jezeli piksel u gory udalo sie ustawic to 
+                            img.setRGB(wiersz, piksel, piksel_prawo_gora);//przypisz kolor do obecnego
+                        else{//jezeli nie ma ustawionych pikseli
+                            etykieta++;//nowa figura
+                            int szarosc = 15 *etykieta;//ustaw numer koloru
+                            int kolor = (szarosc << 16) | (szarosc << 8) | szarosc;//ustawiamy szarosc
+                            img.setRGB(wiersz, piksel, kolor);//przypisujemy kolor do obecnego piksela
+                        }
+                   }
+                }
+            }
+        }
+        File wyjscie = new File("wyjscie.png");//przygotowanie zapisu
+        ImageIO.write(img, "png", wyjscie);//zapis pliku
+    }
+}
